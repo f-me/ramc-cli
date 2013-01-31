@@ -1,69 +1,95 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity" >
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_height="fill_parent">
 
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:text="Требуется услуга" />
+	<LinearLayout
+	    xmlns:android="http://schemas.android.com/apk/res/android"
+	    xmlns:tools="http://schemas.android.com/tools"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical"
+	    tools:context=".MainActivity" >
+	
+	    <ImageView
+	        android:id="@+id/imageView1"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="center_horizontal"
+	        android:src="@drawable/ramc_logo" />
+	    		
+	    <EditText
+	        android:id="@+id/editText1"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:ems="10"
+	        android:hint="ФИО"
+	        android:inputType="textPersonName" />
+	    
+	    <EditText
+	        android:id="@+id/editText2"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:ems="10"
+	        android:hint="Телефон для связи"
+	        android:inputType="phone" />
+	    
+	    <EditText
+	        android:id="@+id/editText3"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:ems="10"
+	        android:hint="VIN" />
+	
+	    <EditText
+	        android:id="@+id/editText4"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:ems="10"
+	        android:hint="Госномер" />
+	
+	    <EditText
+	        android:id="@+id/EditText5"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:ems="10"
+	        android:hint="Номер карты" />
+	
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Дата покупки автомобиля" />
+	
+        <Button
+            android:id="@+id/button2"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Выбрать" />		
+	
+	    <TextView
+	        android:id="@+id/textView2"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+	        android:text="Текущие координаты" />
 
-    <EditText
-        android:id="@+id/editText1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/editText2"
-        android:ems="10"
-        android:hint="ФИО"
-        android:inputType="textPersonName" />
-
-    <EditText
-        android:id="@+id/editText3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/editText1"
-        android:ems="10"
-        android:hint="VIN" />
-
-    <EditText
-        android:id="@+id/editText4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/editText3"
-        android:ems="10"
-        android:hint="Госномер" />
-
-    <ImageView
-        android:id="@+id/imageView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/ramc_logo" />
-
-    <EditText
-        android:id="@+id/editText2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/imageView1"
-        android:ems="10"
-        android:hint="Телефон для связи"
-        android:inputType="phone" >
-
-        <requestFocus />
-    </EditText>
-
-</RelativeLayout>
+	    <Button
+	        android:id="@+id/button3"
+	        style="?android:attr/buttonStyleSmall"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+	        android:text="Определить" />
+   	
+	    <TextView
+	        android:id="@+id/textView2"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+	        android:text="Последняя заявка: нет" />
+	    
+	    <Button
+	        android:id="@+id/button1"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:text="Требуется услуга" />
+	    
+	</LinearLayout>
+</ScrollView>

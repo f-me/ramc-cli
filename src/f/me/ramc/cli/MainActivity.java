@@ -34,6 +34,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
@@ -47,12 +48,15 @@ public class MainActivity extends Activity {
 		setupField(R.id.editText2, "f.me.ramc.cli.phoneNumber");
 		setupField(R.id.editText3, "f.me.ramc.cli.carVIN");
 		setupField(R.id.editText4, "f.me.ramc.cli.carPlate");
+		setupField(R.id.button2,   "f.me.ramc.cli.buyDate");
+		
 
 		Button sendBtn = (Button) findViewById(R.id.button1);
 		sendBtn.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				// Check if networking enabled
+				// Проверить поля, должен быть хотя бы номер телефона и ФИО
 				// 
 				// Check last location accuracy
 				//  - if accuracy low check if GPS enabled & show GPS settings
@@ -66,9 +70,9 @@ public class MainActivity extends Activity {
 			phone.setText(tMgr.getLine1Number());
 		}
 	}
-
+	
 	private void setupField(final int editId, final String prefId) {
-		final EditText field = (EditText) findViewById(editId);
+		final TextView field = (TextView) findViewById(editId);
 		final SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(this);
 
@@ -111,6 +115,7 @@ public class MainActivity extends Activity {
 		}
 	}
 	
+	
 	private JSONObject parseResponse(HttpResponse resp)
 			throws UnsupportedEncodingException, IOException, JSONException {
 		BufferedReader reader = new BufferedReader(
@@ -124,6 +129,9 @@ public class MainActivity extends Activity {
 	
 	
 	private JSONObject collectCaseData() throws JSONException {
+		final SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(this);
+
 		JSONObject data = new JSONObject();
 		Location loc = getLocation();
 	
@@ -131,17 +139,16 @@ public class MainActivity extends Activity {
 			data.put("lon", loc.getLongitude());
 			data.put("lat", loc.getLatitude());
 		}
-		data.put("contact_name",   getFieldStr(R.id.editText1));
-		data.put("contact_phone1", getFieldStr(R.id.editText2));
-		data.put("car_vin",        getFieldStr(R.id.editText3));
-		data.put("car_plateNum",   getFieldStr(R.id.editText4));
+
+		data.put("contact_name",   sp.getString("f.me.ramc.cli.contact_name",   ""));
+		data.put("contact_phone1", sp.getString("f.me.ramc.cli.contact_phone1", ""));
+		data.put("car_vin",        sp.getString("f.me.ramc.cli.car_vin",        ""));
+		data.put("car_plateNum",   sp.getString("f.me.ramc.cli.car_plateNum",   ""));
+		data.put("car_buyDate",    sp.getString("f.me.ramc.cli.car_buyDate",    ""));
 		return data;
 	}
 	
 	
-	private String getFieldStr(int fieldId) {
-		return ((EditText) findViewById(fieldId)).getText().toString();
-	}
 
 	
 	private void apologize() {
