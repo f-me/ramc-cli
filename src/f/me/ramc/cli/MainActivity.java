@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.Calendar;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -21,10 +22,18 @@ import org.json.JSONTokener;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
@@ -33,22 +42,27 @@ import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+	final int DATE_PICKER_DIALOG = 0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		setupField(R.id.editText1, "f.me.ramc.cli.personName");
-		setupField(R.id.editText2, "f.me.ramc.cli.phoneNumber");
-		setupField(R.id.editText3, "f.me.ramc.cli.carVIN");
-		setupField(R.id.editText4, "f.me.ramc.cli.carPlate");
-		setupField(R.id.button2,   "f.me.ramc.cli.buyDate");
+		TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+		String usersPhoneNum = tMgr.getLine1Number();
+
+		setupField(R.id.editText1, "f.me.ramc.cli.personName",  "");
+		setupField(R.id.editText2, "f.me.ramc.cli.phoneNumber", usersPhoneNum);
+		setupField(R.id.editText3, "f.me.ramc.cli.carVIN",      "");
+		setupField(R.id.editText4, "f.me.ramc.cli.carPlate",    "");
+		setupField(R.id.button2,   "f.me.ramc.cli.buyDate",     "Выбрать");
+		setupField(R.id.textView3, "f.me.ramc.cli.lastCase",    "Последняя заявка: нет");
 		
 
 		Button sendBtn = (Button) findViewById(R.id.button1);
@@ -60,35 +74,66 @@ public class MainActivity extends Activity {
 				// 
 				// Check last location accuracy
 				//  - if accuracy low check if GPS enabled & show GPS settings
-				sendDataToRAMC(); // TODO: в отдельном потоке
+				if (checkNetworkConnection()) {
+					sendDataToRAMC();
+				}
+			}
+		});
+		
+		Button dateBtn = (Button) findViewById(R.id.button2);
+		dateBtn.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				MainActivity.this.showDialog(DATE_PICKER_DIALOG);
 			}
 		});
 
-		EditText phone = (EditText) findViewById(R.id.editText2);
-		if (phone.getText().length() == 0) {
-			TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-			phone.setText(tMgr.getLine1Number());
-		}
+		Button locBtn = (Button) findViewById(R.id.button3);
+		locBtn.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				checkLocationServices();
+			}
+		});
 	}
 	
-	private void setupField(final int editId, final String prefId) {
+	private void setupField(final int editId, final String prefId, String def) {
 		final TextView field = (TextView) findViewById(editId);
 		final SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(this);
 
-		String val = sp.getString(prefId, "");
+		String val = sp.getString(prefId, def);
 		field.setText(val);
 
 		field.addTextChangedListener(new TextWatcher() {
 			public void afterTextChanged(Editable e) {
 				sp.edit().putString(prefId, e.toString()).commit();
-
 			}
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 			public void onTextChanged(CharSequence s, int start, int before, int count) {}
 		});
 	}
 
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+		case DATE_PICKER_DIALOG:
+			Calendar c = Calendar.getInstance();
+			return new DatePickerDialog(
+					this,
+					new DatePickerDialog.OnDateSetListener() {
+						@Override
+					    public void onDateSet(DatePicker v, int y, int m, int d) {
+					    	String date = String.format("%04d-%02d-%02d", y, m+1, d);
+					    	((TextView) findViewById(R.id.button2)).setText(date);
+					    }
+				    },
+					c.get(Calendar.YEAR),
+					c.get(Calendar.MONTH),
+					c.get(Calendar.DAY_OF_MONTH));
+		default:
+			return super.onCreateDialog(id);
+		}
+	}
 
 	private void sendDataToRAMC() {
 		try {
@@ -110,6 +155,8 @@ public class MainActivity extends Activity {
 		    String msg = "Создана заявка " + jsonResp.getInt("caseId");
 		    msg += "\nОжидайте звонка.";
 	    	Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
+	    	((TextView) findViewById(R.id.textView3)).setText(
+	    			"Последняя заявка: " + jsonResp.getInt("caseId"));
 		} catch (Exception e) {
 			apologize();
 		}
@@ -149,13 +196,51 @@ public class MainActivity extends Activity {
 	}
 	
 	
-
-	
 	private void apologize() {
 		String msg = "Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.";
     	Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
 	}
 
+	public boolean checkNetworkConnection() {
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        boolean connected = false;
+        for (NetworkInfo ni : cm.getAllNetworkInfo()) {
+            connected |= ni.isConnected();
+        }
+        
+        if (!connected) {
+        	AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+            alertDialog.setTitle("Ошибка связи");
+            alertDialog.setMessage(
+    			"Для отправки информации в РАМК необходимо соединение с интернетом."
+        		+ "\nПроверьте соединение и попробуйте ещё раз.");
+            alertDialog.setPositiveButton("Хорошо", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog,int which) {}
+            });
+            alertDialog.show();
+        }
+        return connected;
+	}
+	
+	
+    public void checkLocationServices() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+
+        alertDialog.setTitle("Настройки GPS");
+        alertDialog.setMessage("Необходимо включить GPS. Перейти в меню с настройками?");
+        alertDialog.setPositiveButton("Перейти", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog,int which) {
+              Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+              MainActivity.this.startActivity(intent);
+            }
+        });
+        alertDialog.setNegativeButton("Отмена", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+            	dialog.cancel();
+            }
+        });
+        alertDialog.show();
+      }
 	
 	private Location getLocation() {
 		Criteria criteria = new Criteria();
