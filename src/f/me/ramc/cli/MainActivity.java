@@ -19,8 +19,8 @@ import org.json.JSONObject;
 import org.json.JSONException;
 import org.json.JSONTokener;
 
-import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -46,6 +46,7 @@ import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 public class MainActivity extends Activity {
 	final int DATE_PICKER_DIALOG = 0;
 
@@ -65,20 +66,8 @@ public class MainActivity extends Activity {
 		setupField(R.id.textView3, "f.me.ramc.cli.lastCase",    "Последняя заявка: нет");
 		
 
-		Button sendBtn = (Button) findViewById(R.id.button1);
-		sendBtn.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				// Check if networking enabled
-				// Проверить поля, должен быть хотя бы номер телефона и ФИО
-				// 
-				// Check last location accuracy
-				//  - if accuracy low check if GPS enabled & show GPS settings
-				if (checkNetworkConnection()) {
-					sendDataToRAMC();
-				}
-			}
-		});
+		((Button) findViewById(R.id.button1)).setOnClickListener(new DoSendData());
+
 		
 		Button dateBtn = (Button) findViewById(R.id.button2);
 		dateBtn.setOnClickListener(new OnClickListener() {
@@ -92,7 +81,22 @@ public class MainActivity extends Activity {
 		locBtn.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				checkLocationServices();
+				LocationManager locMan = (LocationManager) getSystemService(LOCATION_SERVICE);
+		        if(!locMan.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+		        	locationServicesAlert();
+		        }
+		        
+		        if(locMan.isProviderEnabled(LocationManager.GPS_PROVIDER)
+		        || locMan.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
+		        {
+					MyLocationListener locListener = new MyLocationListener();
+					if (locMan.isProviderEnabled(LocationManager.GPS_PROVIDER))
+						locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, locListener);
+					if (locMan.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
+						locMan.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0, locListener);
+			        
+					((TextView) findViewById(R.id.button3)).setText("Подождите немного");
+		        }
 			}
 		});
 	}
@@ -114,6 +118,32 @@ public class MainActivity extends Activity {
 		});
 	}
 
+
+	class DoSendData implements OnClickListener {
+		@Override
+		public void onClick(View v) {
+			if (!checkNetworkConnection()) return;
+			try {
+				JSONObject data = collectCaseData();
+				boolean validData
+					= data.getString("contact_name").length() > 0
+					&& data.getString("contact_phone1").length() > 0;
+				if (!validData) {
+					Toast.makeText(
+							getBaseContext(),
+							"Нужно заполнить хотя бы ФИО и номер телефона, " +
+							"иначе мы никак не сможем с Вами связаться.",
+							Toast.LENGTH_LONG).show();
+					return;
+				}
+				sendDataToRAMC(data);
+			} catch (Exception e) {
+				apologize();
+			}
+		}
+	}
+
+	
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
 		case DATE_PICKER_DIALOG:
@@ -135,31 +165,44 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	private void sendDataToRAMC() {
-		try {
-			JSONObject data = collectCaseData();
-			
-			HttpParams params = new BasicHttpParams();
-			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-			HttpProtocolParams.setContentCharset(params, "UTF-8");
-			
-			DefaultHttpClient httpclient = new DefaultHttpClient(params);
-		    HttpPost post = new HttpPost("http://asgru.dyndns.org:40443/geo/case/");
-		    String str = data.toString();
-		    post.setEntity(new StringEntity(str, HTTP.UTF_8));
-		    post.setHeader("Accept", "application/json");
-		    post.setHeader("Content-type", "application/json");
-		    HttpResponse resp = httpclient.execute(post);
-		    JSONObject jsonResp = parseResponse(resp);
-		    
-		    String msg = "Создана заявка " + jsonResp.getInt("caseId");
-		    msg += "\nОжидайте звонка.";
-	    	Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
-	    	((TextView) findViewById(R.id.textView3)).setText(
-	    			"Последняя заявка: " + jsonResp.getInt("caseId"));
-		} catch (Exception e) {
-			apologize();
-		}
+	
+    public class MyLocationListener implements LocationListener {
+        public void onStatusChanged(String provider, int status, Bundle extras) {}
+		public void onProviderDisabled(String provider) {}
+		public void onProviderEnabled(String provider) {}
+
+        public void onLocationChanged(Location loc) {
+            if (loc != null && loc.getAccuracy() < 1000) {
+            	String locStr = String.format("%.5f;%.5f", loc.getLongitude(), loc.getLatitude());
+            	((TextView) findViewById(R.id.button3)).setText(locStr);
+
+            	LocationManager locMan = (LocationManager) getSystemService(Context.LOCATION_SERVICE);        
+		        locMan.removeUpdates(this);
+            }
+        }
+    }
+
+    
+	private void sendDataToRAMC(JSONObject data) 
+			throws UnsupportedEncodingException, IOException, JSONException {
+		HttpParams params = new BasicHttpParams();
+		HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+		HttpProtocolParams.setContentCharset(params, "UTF-8");
+		
+		DefaultHttpClient httpclient = new DefaultHttpClient(params);
+	    HttpPost post = new HttpPost("http://asgru.dyndns.org:40443/geo/case/");
+	    String str = data.toString();
+	    post.setEntity(new StringEntity(str, HTTP.UTF_8));
+	    post.setHeader("Accept", "application/json");
+	    post.setHeader("Content-type", "application/json");
+	    HttpResponse resp = httpclient.execute(post);
+	    JSONObject jsonResp = parseResponse(resp);
+	    
+	    String msg = "Создана заявка " + jsonResp.getInt("caseId");
+	    msg += "\nОжидайте звонка.";
+    	Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
+    	((TextView) findViewById(R.id.textView3)).setText(
+    			"Последняя заявка: " + jsonResp.getInt("caseId"));
 	}
 	
 	
@@ -180,7 +223,7 @@ public class MainActivity extends Activity {
 				.getDefaultSharedPreferences(this);
 
 		JSONObject data = new JSONObject();
-		Location loc = getLocation();
+		Location loc = null; // FIXME: getLocation();
 	
 		if (loc != null) {
 			data.put("lon", loc.getLongitude());
@@ -223,7 +266,7 @@ public class MainActivity extends Activity {
 	}
 	
 	
-    public void checkLocationServices() {
+    public void locationServicesAlert() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 
         alertDialog.setTitle("Настройки GPS");
@@ -241,18 +284,8 @@ public class MainActivity extends Activity {
         });
         alertDialog.show();
       }
-	
-	private Location getLocation() {
-		Criteria criteria = new Criteria();
-		criteria.setAccuracy(Criteria.ACCURACY_FINE);
-		criteria.setAltitudeRequired(false);
-		criteria.setBearingRequired(false);
 
-		LocationManager locMan = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		String provider = locMan.getBestProvider(criteria, true);
-		return locMan.getLastKnownLocation(provider);
-	}
-
+    
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.activity_main, menu);
