@@ -24,6 +24,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -136,10 +137,11 @@ public class MainActivity extends Activity {
 							Toast.LENGTH_LONG).show();
 					return;
 				}
-				sendDataToRAMC(data);
+				new SendToRAMC().execute(data);
 			} catch (Exception e) {
-				apologize();
-			}
+				String msg = "Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.";
+		    	Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
+			}			
 		}
 	}
 
@@ -184,40 +186,55 @@ public class MainActivity extends Activity {
         }
     }
 
-    
-	private void sendDataToRAMC(JSONObject data) 
-			throws UnsupportedEncodingException, IOException, JSONException {
-		HttpParams params = new BasicHttpParams();
-		HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-		HttpProtocolParams.setContentCharset(params, "UTF-8");
+    private class SendToRAMC extends AsyncTask<JSONObject, Void, JSONObject> {
+    	@Override
+		protected JSONObject doInBackground(JSONObject... datas) {
+			try {
+				JSONObject data = datas[0];
+				HttpParams params = new BasicHttpParams();
+				HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+				HttpProtocolParams.setContentCharset(params, "UTF-8");
+				
+				DefaultHttpClient httpclient = new DefaultHttpClient(params);
+			    HttpPost post = new HttpPost("http://asgru.dyndns.org:40443/geo/case/");
+			    String str = data.toString();
+			    post.setEntity(new StringEntity(str, HTTP.UTF_8));
+			    post.setHeader("Accept", "application/json");
+			    post.setHeader("Content-type", "application/json");
+			    HttpResponse resp = httpclient.execute(post);
+			    return parseResponse(resp);
+			} catch (Exception e) {
+				return null;
+			}
+		}
 		
-		DefaultHttpClient httpclient = new DefaultHttpClient(params);
-	    HttpPost post = new HttpPost("http://asgru.dyndns.org:40443/geo/case/");
-	    String str = data.toString();
-	    post.setEntity(new StringEntity(str, HTTP.UTF_8));
-	    post.setHeader("Accept", "application/json");
-	    post.setHeader("Content-type", "application/json");
-	    HttpResponse resp = httpclient.execute(post);
-	    JSONObject jsonResp = parseResponse(resp);
-	    
-	    String msg = "Создана заявка " + jsonResp.getInt("caseId");
-	    msg += "\nОжидайте звонка.";
-    	Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
-    	((TextView) findViewById(R.id.textView3)).setText(
-    			"Последняя заявка: " + jsonResp.getInt("caseId"));
-	}
-	
-	
-	private JSONObject parseResponse(HttpResponse resp)
-			throws UnsupportedEncodingException, IOException, JSONException {
-		BufferedReader reader = new BufferedReader(
-				new InputStreamReader(
-						resp.getEntity().getContent(),
-						"UTF-8"));
-		String json = reader.readLine();
-		JSONTokener tokener = new JSONTokener(json);
-		return new JSONObject(tokener);
-	}
+		@Override
+		protected void onPostExecute(JSONObject resp) {
+			Activity mc = MainActivity.this;
+			Context bc = mc.getBaseContext();
+			try {
+			    String msg = "Создана заявка " + resp.getInt("caseId");
+			    msg += "\nОжидайте звонка.";
+		    	Toast.makeText(bc, msg, Toast.LENGTH_LONG).show();
+		    	((TextView) mc.findViewById(R.id.textView3)).setText(
+		    			"Последняя заявка: " + resp.getInt("caseId"));
+			} catch (Exception e) {
+				String msg = "Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.";
+		    	Toast.makeText(bc, msg, Toast.LENGTH_LONG).show();
+			}
+		}
+		
+		private JSONObject parseResponse(HttpResponse resp)
+				throws UnsupportedEncodingException, IOException, JSONException {
+			BufferedReader reader = new BufferedReader(
+					new InputStreamReader(
+							resp.getEntity().getContent(),
+							"UTF-8"));
+			String json = reader.readLine();
+			JSONTokener tokener = new JSONTokener(json);
+			return new JSONObject(tokener);
+		}
+    }
 	
 	
 	private JSONObject collectCaseData() throws JSONException {
@@ -240,11 +257,6 @@ public class MainActivity extends Activity {
 	}
 	
 	
-	private void apologize() {
-		String msg = "Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.";
-    	Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
-	}
-
 	public boolean checkNetworkConnection() {
         ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
         boolean connected = false;
