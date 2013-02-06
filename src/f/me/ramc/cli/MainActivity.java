@@ -58,12 +58,12 @@ public class MainActivity extends Activity {
 		TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 		String usersPhoneNum = tMgr.getLine1Number();
 
-		setupField(R.id.editText1, "f.me.ramc.cli.personName",  "");
-		setupField(R.id.editText2, "f.me.ramc.cli.phoneNumber", usersPhoneNum);
-		setupField(R.id.editText3, "f.me.ramc.cli.carVIN",      "");
-		setupField(R.id.editText4, "f.me.ramc.cli.carPlate",    "");
-		setupField(R.id.button2,   "f.me.ramc.cli.buyDate",     "Выбрать");
-		setupField(R.id.textView3, "f.me.ramc.cli.lastCase",    "Последняя заявка: нет");
+		setupField(R.id.editText1, "f.me.ramc.cli.contact_name",   "");
+		setupField(R.id.editText2, "f.me.ramc.cli.contact_phone1", usersPhoneNum);
+		setupField(R.id.editText3, "f.me.ramc.cli.car_vin",        "");
+		setupField(R.id.editText4, "f.me.ramc.cli.car_plateNum",   "");
+		setupField(R.id.button2,   "f.me.ramc.cli.car_buyDate",    "Выбрать");
+		setupField(R.id.textView3, "f.me.ramc.cli.lastCase",       "Последняя заявка: нет");
 		
 
 		((Button) findViewById(R.id.button1)).setOnClickListener(new DoSendData());
@@ -165,6 +165,7 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	private Location lastLocation = null;
 	
     public class MyLocationListener implements LocationListener {
         public void onStatusChanged(String provider, int status, Bundle extras) {}
@@ -175,6 +176,7 @@ public class MainActivity extends Activity {
             if (loc != null && loc.getAccuracy() < 1000) {
             	String locStr = String.format("%.5f;%.5f", loc.getLongitude(), loc.getLatitude());
             	((TextView) findViewById(R.id.button3)).setText(locStr);
+            	lastLocation = loc;
 
             	LocationManager locMan = (LocationManager) getSystemService(Context.LOCATION_SERVICE);        
 		        locMan.removeUpdates(this);
@@ -223,11 +225,10 @@ public class MainActivity extends Activity {
 				.getDefaultSharedPreferences(this);
 
 		JSONObject data = new JSONObject();
-		Location loc = null; // FIXME: getLocation();
-	
-		if (loc != null) {
-			data.put("lon", loc.getLongitude());
-			data.put("lat", loc.getLatitude());
+		
+		if (this.lastLocation != null) {
+			data.put("lon", this.lastLocation.getLongitude());
+			data.put("lat", this.lastLocation.getLatitude());
 		}
 
 		data.put("contact_name",   sp.getString("f.me.ramc.cli.contact_name",   ""));
