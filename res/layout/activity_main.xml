@@ -52,19 +52,7 @@
 	        android:layout_height="wrap_content"
 	        android:ems="10"
 	        android:hint="Номер карты" />
-	
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Дата покупки автомобиля" />
-	
-        <Button
-            android:id="@+id/button2"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content" />
-	
+		
 	    <TextView
 	        android:id="@+id/textView2"
             android:layout_width="fill_parent"

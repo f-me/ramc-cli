@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.Calendar;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -30,8 +29,6 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -43,14 +40,11 @@ import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
 public class MainActivity extends Activity {
-	final int DATE_PICKER_DIALOG = 0;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -63,20 +57,9 @@ public class MainActivity extends Activity {
 		setupField(R.id.editText2, "f.me.ramc.cli.contact_phone1", usersPhoneNum);
 		setupField(R.id.editText3, "f.me.ramc.cli.car_vin",        "");
 		setupField(R.id.editText4, "f.me.ramc.cli.car_plateNum",   "");
-		setupField(R.id.button2,   "f.me.ramc.cli.car_buyDate",    "Выбрать");
 		setupField(R.id.textView3, "f.me.ramc.cli.lastCase",       "Последняя заявка: нет");
 		
-
 		((Button) findViewById(R.id.button1)).setOnClickListener(new DoSendData());
-
-		
-		Button dateBtn = (Button) findViewById(R.id.button2);
-		dateBtn.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				MainActivity.this.showDialog(DATE_PICKER_DIALOG);
-			}
-		});
 
 		Button locBtn = (Button) findViewById(R.id.button3);
 		locBtn.setOnClickListener(new OnClickListener() {
@@ -142,28 +125,6 @@ public class MainActivity extends Activity {
 				String msg = "Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.";
 		    	Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
 			}			
-		}
-	}
-
-	
-	protected Dialog onCreateDialog(int id) {
-		switch (id) {
-		case DATE_PICKER_DIALOG:
-			Calendar c = Calendar.getInstance();
-			return new DatePickerDialog(
-					this,
-					new DatePickerDialog.OnDateSetListener() {
-						@Override
-					    public void onDateSet(DatePicker v, int y, int m, int d) {
-					    	String date = String.format("%04d-%02d-%02d", y, m+1, d);
-					    	((TextView) findViewById(R.id.button2)).setText(date);
-					    }
-				    },
-					c.get(Calendar.YEAR),
-					c.get(Calendar.MONTH),
-					c.get(Calendar.DAY_OF_MONTH));
-		default:
-			return super.onCreateDialog(id);
 		}
 	}
 
@@ -252,7 +213,6 @@ public class MainActivity extends Activity {
 		data.put("contact_phone1", sp.getString("f.me.ramc.cli.contact_phone1", ""));
 		data.put("car_vin",        sp.getString("f.me.ramc.cli.car_vin",        ""));
 		data.put("car_plateNum",   sp.getString("f.me.ramc.cli.car_plateNum",   ""));
-		data.put("car_buyDate",    sp.getString("f.me.ramc.cli.car_buyDate",    ""));
 		return data;
 	}
 	
