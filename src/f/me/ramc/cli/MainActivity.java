@@ -213,6 +213,7 @@ public class MainActivity extends Activity {
 		data.put("contact_phone1", sp.getString("f.me.ramc.cli.contact_phone1", ""));
 		data.put("car_vin",        sp.getString("f.me.ramc.cli.car_vin",        ""));
 		data.put("car_plateNum",   sp.getString("f.me.ramc.cli.car_plateNum",   ""));
+		data.put("program",        "cad2012");
 		return data;
 	}
 	
