@@ -157,7 +157,7 @@ public class MainActivity extends Activity {
 				HttpProtocolParams.setContentCharset(params, "UTF-8");
 				
 				DefaultHttpClient httpclient = new DefaultHttpClient(params);
-			    HttpPost post = new HttpPost("http://asgru.dyndns.org:40443/geo/case/");
+			    HttpPost post = new HttpPost("http://gps.ruamc.ru/geo/case/");
 			    String str = data.toString();
 			    post.setEntity(new StringEntity(str, HTTP.UTF_8));
 			    post.setHeader("Accept", "application/json");
