@@ -4,5 +4,6 @@
     <string name="app_name">RAMC</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
+    <string name="ramc_url">http://asgru.dyndns.org:40443/geo/case/</string>
 
 </resources>

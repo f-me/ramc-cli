@@ -45,13 +45,6 @@
 	        android:ems="10"
 	        android:hint="Госномер" />
 	
-	    <EditText
-	        android:id="@+id/EditText5"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:ems="10"
-	        android:hint="Номер карты" />
-		
 	    <TextView
 	        android:id="@+id/textView2"
             android:layout_width="fill_parent"

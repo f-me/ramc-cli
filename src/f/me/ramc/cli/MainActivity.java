@@ -157,7 +157,7 @@ public class MainActivity extends Activity {
 				HttpProtocolParams.setContentCharset(params, "UTF-8");
 				
 				DefaultHttpClient httpclient = new DefaultHttpClient(params);
-			    HttpPost post = new HttpPost("http://gps.ruamc.ru/geo/case/");
+			    HttpPost post = new HttpPost(getString(R.string.ramc_url));
 			    String str = data.toString();
 			    post.setEntity(new StringEntity(str, HTTP.UTF_8));
 			    post.setHeader("Accept", "application/json");
@@ -180,7 +180,7 @@ public class MainActivity extends Activity {
 		    	((TextView) mc.findViewById(R.id.textView3)).setText(
 		    			"Последняя заявка: " + resp.getInt("caseId"));
 			} catch (Exception e) {
-				String msg = "Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.";
+				String msg = "Не удалось отправить запрос, попробуйте самостоятельно позвонить в GM Assistance.";
 		    	Toast.makeText(bc, msg, Toast.LENGTH_LONG).show();
 			}
 		}
