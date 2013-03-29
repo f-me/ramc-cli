@@ -2,7 +2,21 @@
 <resources>
 
     <string name="app_name">RAMC</string>
-    <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
+    <string name="waitPlease">Подождите немного</string>
+    <string name="warnEmptyFields">Нужно заполнить хотя бы ФИО и номер телефона, иначе мы никак не сможем с Вами связаться.</string>
+    <string name="sendFailed">Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.</string>
+    <string name="serverUrl">http://gps.ruamc.ru:40443/geo/case/</string>
+    <string name="caseCreatedTpl">Создана заявка %i\nОжидайте звонка.</string>
+    <string name="lastCaseTpl">Последняя заявка: %i</string>
+
+    <string name="connDialogTitle">Ошибка связи</string>
+    <string name="connDialogMessage">Для отправки информации в РАМК необходимо соединение с интернетом.\nПроверьте соединение и попробуйте ещё раз.</string>
+    <string name="connDialogBtn">Хорошо</string>
+
+    <string name="gpsDialogTitle">Настройки GPS</string>
+    <string name="gpsDialogMessage">Необходимо включить GPS. Перейти в меню с настройками?</string>
+    <string name="gpsDialogOk">Перейти</string>
+    <string name="gpsDialogCancel">Отмена</string>
 
 </resources>

@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
         setupField(R.id.editText2, "f.me.ramc.cli.contact_phone1", usersPhoneNum);
         setupField(R.id.editText3, "f.me.ramc.cli.car_vin",        "");
         setupField(R.id.editText4, "f.me.ramc.cli.car_plateNum",   "");
-        setupField(R.id.textView3, "f.me.ramc.cli.lastCase",       "Последняя заявка: нет");
+        setupField(R.id.textView3, "f.me.ramc.cli.lastCase",       "");
 
         ((Button) findViewById(R.id.button1)).setOnClickListener(new DoSendData());
 
@@ -75,11 +75,16 @@ public class MainActivity extends Activity {
                 {
                     MyLocationListener locListener = new MyLocationListener();
                     if (locMan.isProviderEnabled(LocationManager.GPS_PROVIDER))
-                        locMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, locListener);
+                        locMan.requestLocationUpdates(
+                          LocationManager.GPS_PROVIDER,
+                          10000, 0, locListener);
                     if (locMan.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
-                        locMan.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0, locListener);
+                        locMan.requestLocationUpdates(
+                          LocationManager.NETWORK_PROVIDER,
+                          10000, 0, locListener);
 
-                    ((TextView) findViewById(R.id.button3)).setText("Подождите немного");
+                    String waitPlease = getResources().getString(R.string.waitPlease);
+                    ((TextView) findViewById(R.id.button3)).setText(waitPlease);
                 }
             }
         });
@@ -113,17 +118,17 @@ public class MainActivity extends Activity {
                     = data.getString("contact_name").length() > 0
                     && data.getString("contact_phone1").length() > 0;
                 if (!validData) {
+                    String warnEmptyFields = getResources().getString(R.string.warnEmptyFields);
                     Toast.makeText(
                             getBaseContext(),
-                            "Нужно заполнить хотя бы ФИО и номер телефона, " +
-                            "иначе мы никак не сможем с Вами связаться.",
+                            warnEmptyFields,
                             Toast.LENGTH_LONG).show();
                     return;
                 }
                 new SendToRAMC().execute(data);
             } catch (Exception e) {
-                String msg = "Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.";
-                Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG).show();
+                String sendFailed = getResources().getString(R.string.sendFailed);
+                Toast.makeText(getBaseContext(), sendFailed, Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -157,7 +162,8 @@ public class MainActivity extends Activity {
                 HttpProtocolParams.setContentCharset(params, "UTF-8");
 
                 DefaultHttpClient httpclient = new DefaultHttpClient(params);
-                HttpPost post = new HttpPost("http://asgru.dyndns.org:40443/geo/case/");
+                String serverUrl = getResources().getString(R.string.serverUrl);
+                HttpPost post = new HttpPost(serverUrl);
                 String str = data.toString();
                 post.setEntity(new StringEntity(str, HTTP.UTF_8));
                 post.setHeader("Accept", "application/json");
@@ -174,14 +180,16 @@ public class MainActivity extends Activity {
             Activity mc = MainActivity.this;
             Context bc = mc.getBaseContext();
             try {
-                String msg = "Создана заявка " + resp.getInt("caseId");
-                msg += "\nОжидайте звонка.";
-                Toast.makeText(bc, msg, Toast.LENGTH_LONG).show();
+                String caseCreatedTpl = getResources().getString(R.string.caseCreatedTpl);
+                String caseCreated = String.format(caseCreatedTpl, resp.getInt("caseId"));
+                Toast.makeText(bc, caseCreated, Toast.LENGTH_LONG).show();
+
+                String lastCaseTpl = getResources().getString(R.string.lastCaseTpl);
                 ((TextView) mc.findViewById(R.id.textView3)).setText(
-                        "Последняя заявка: " + resp.getInt("caseId"));
+                        String.format(lastCaseTpl, resp.getInt("caseId")));
             } catch (Exception e) {
-                String msg = "Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.";
-                Toast.makeText(bc, msg, Toast.LENGTH_LONG).show();
+                String sendFailed = getResources().getString(R.string.sendFailed);
+                Toast.makeText(getBaseContext(), sendFailed, Toast.LENGTH_LONG).show();
             }
         }
 
@@ -226,12 +234,14 @@ public class MainActivity extends Activity {
 
         if (!connected) {
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-            alertDialog.setTitle("Ошибка связи");
-            alertDialog.setMessage(
-                "Для отправки информации в РАМК необходимо соединение с интернетом."
-                + "\nПроверьте соединение и попробуйте ещё раз.");
-            alertDialog.setPositiveButton("Хорошо", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog,int which) {}
+            String connDialogTitle = getString(R.string.connDialogTitle);
+            String connDialogMessage = getString(R.string.connDialogMessage);
+            String connDialogBtn = getString(R.string.connDialogBtn);
+            alertDialog.setTitle(connDialogTitle);
+            alertDialog.setMessage(connDialogMessage);
+            alertDialog.setPositiveButton(connDialogBtn,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,int which) {}
             });
             alertDialog.show();
         }
@@ -242,15 +252,19 @@ public class MainActivity extends Activity {
     public void locationServicesAlert() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 
-        alertDialog.setTitle("Настройки GPS");
-        alertDialog.setMessage("Необходимо включить GPS. Перейти в меню с настройками?");
-        alertDialog.setPositiveButton("Перейти", new DialogInterface.OnClickListener() {
+        String gpsDialogTitle = getString(R.string.gpsDialogTitle);
+        String gpsDialogMessage = getString(R.string.gpsDialogMessage);
+        String gpsDialogOk = getString(R.string.gpsDialogOk);
+        String gpsDialogCancel = getString(R.string.gpsDialogCancel);
+        alertDialog.setTitle(gpsDialogTitle);
+        alertDialog.setMessage(gpsDialogMessage);
+        alertDialog.setPositiveButton(gpsDialogOk, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog,int which) {
               Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
               MainActivity.this.startActivity(intent);
             }
         });
-        alertDialog.setNegativeButton("Отмена", new DialogInterface.OnClickListener() {
+        alertDialog.setNegativeButton(gpsDialogCancel, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
             }
