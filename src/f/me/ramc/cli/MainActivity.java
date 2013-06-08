@@ -2,21 +2,18 @@ package f.me.ramc.cli;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 import org.json.JSONException;
-import org.json.JSONTokener;
 
 import android.location.Location;
 import android.location.LocationListener;
@@ -94,10 +91,13 @@ public class MainActivity extends Activity {
 		field.setText(val);
 
 		field.addTextChangedListener(new TextWatcher() {
+			@Override
 			public void afterTextChanged(Editable e) {
 				sp.edit().putString(prefId, e.toString()).commit();
 			}
+			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {}
 		});
 	}
@@ -131,11 +131,15 @@ public class MainActivity extends Activity {
 	private Location lastLocation = null;
 	
     public class MyLocationListener implements LocationListener {
-        public void onStatusChanged(String provider, int status, Bundle extras) {}
+        @Override
+		public void onStatusChanged(String provider, int status, Bundle extras) {}
+		@Override
 		public void onProviderDisabled(String provider) {}
+		@Override
 		public void onProviderEnabled(String provider) {}
 
-        public void onLocationChanged(Location loc) {
+        @Override
+		public void onLocationChanged(Location loc) {
             if (loc != null && loc.getAccuracy() < 1000) {
             	String locStr = String.format("%.5f;%.5f", loc.getLongitude(), loc.getLatitude());
             	((TextView) findViewById(R.id.button3)).setText(locStr);
@@ -146,27 +150,74 @@ public class MainActivity extends Activity {
             }
         }
     }
-
-    private class SendToRAMC extends AsyncTask<JSONObject, Void, JSONObject> {
-    	@Override
+	
+	private class SendToRAMC extends AsyncTask<JSONObject, Void, JSONObject> {
+		
+		@Override
 		protected JSONObject doInBackground(JSONObject... datas) {
 			try {
-				JSONObject data = datas[0];
-				HttpParams params = new BasicHttpParams();
-				HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-				HttpProtocolParams.setContentCharset(params, "UTF-8");
+				DefaultHttpClient httpclient = new DefaultHttpClient();
+				HttpPost httpPostRequest = new HttpPost("http://portal.ruamc.ru:40443/geo/case/");
 				
-				DefaultHttpClient httpclient = new DefaultHttpClient(params);
-			    HttpPost post = new HttpPost("http://asgru.dyndns.org:40443/geo/case/");
-			    String str = data.toString();
-			    post.setEntity(new StringEntity(str, HTTP.UTF_8));
-			    post.setHeader("Accept", "application/json");
-			    post.setHeader("Content-type", "application/json");
-			    HttpResponse resp = httpclient.execute(post);
-			    return parseResponse(resp);
-			} catch (Exception e) {
-				return null;
+				StringEntity se;
+				se = new StringEntity(datas[0].toString());
+				
+				// Set HTTP parameters
+				httpPostRequest.setEntity(se);
+				httpPostRequest.setHeader("Accept", "application/json");
+				httpPostRequest.setHeader("Content-type", "application/json");
+				// only set this parameter if you would like to use gzip compression
+				// httpPostRequest.setHeader("Accept-Encoding", "gzip");
+				
+				HttpResponse response = httpclient.execute(httpPostRequest);
+				
+				// Get hold of the response entity (-> the data):
+				HttpEntity entity = response.getEntity();
+				
+				if (entity != null) {
+					// Read the content stream
+					InputStream instream = entity.getContent();
+					Header contentEncoding = response.getFirstHeader("Content-Encoding");
+					if (contentEncoding != null && contentEncoding.getValue().equalsIgnoreCase("gzip")) {
+						instream = new GZIPInputStream(instream);
+					}
+	
+					// convert content stream to a String
+					String resultString= convertStreamToString(instream);
+					instream.close();
+					
+					// Transform the String into a JSONObject
+					JSONObject jsonObjRecv = new JSONObject(resultString);
+	
+					return jsonObjRecv;
+				} 
+	
 			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
+		
+		private String convertStreamToString(InputStream is) {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+			StringBuilder sb = new StringBuilder();
+	
+			String line = null;
+			try {
+				while ((line = reader.readLine()) != null) {
+					sb.append(line + "\n");
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			return sb.toString();
 		}
 		
 		@Override
@@ -185,17 +236,7 @@ public class MainActivity extends Activity {
 			}
 		}
 		
-		private JSONObject parseResponse(HttpResponse resp)
-				throws UnsupportedEncodingException, IOException, JSONException {
-			BufferedReader reader = new BufferedReader(
-					new InputStreamReader(
-							resp.getEntity().getContent(),
-							"UTF-8"));
-			String json = reader.readLine();
-			JSONTokener tokener = new JSONTokener(json);
-			return new JSONObject(tokener);
-		}
-    }
+	}
 	
 	
 	private JSONObject collectCaseData() throws JSONException {
@@ -231,7 +272,8 @@ public class MainActivity extends Activity {
     			"Для отправки информации в РАМК необходимо соединение с интернетом."
         		+ "\nПроверьте соединение и попробуйте ещё раз.");
             alertDialog.setPositiveButton("Хорошо", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog,int which) {}
+                @Override
+				public void onClick(DialogInterface dialog,int which) {}
             });
             alertDialog.show();
         }
@@ -245,13 +287,15 @@ public class MainActivity extends Activity {
         alertDialog.setTitle("Настройки GPS");
         alertDialog.setMessage("Необходимо включить GPS. Перейти в меню с настройками?");
         alertDialog.setPositiveButton("Перейти", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
+            @Override
+			public void onClick(DialogInterface dialog,int which) {
               Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
               MainActivity.this.startActivity(intent);
             }
         });
         alertDialog.setNegativeButton("Отмена", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
+            @Override
+			public void onClick(DialogInterface dialog, int which) {
             	dialog.cancel();
             }
         });
