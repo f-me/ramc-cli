@@ -34,6 +34,7 @@ import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -158,7 +159,6 @@ public class MainActivity extends Activity {
 			try {
 				DefaultHttpClient httpclient = new DefaultHttpClient();
 				HttpPost httpPostRequest = new HttpPost("http://portal.ruamc.ru:40443/geo/case/");
-				
 				StringEntity se;
 				se = new StringEntity(datas[0].toString());
 				
@@ -231,8 +231,7 @@ public class MainActivity extends Activity {
 		    	((TextView) mc.findViewById(R.id.textView3)).setText(
 		    			"Последняя заявка: " + resp.getInt("caseId"));
 			} catch (Exception e) {
-				String msg = "Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.";
-		    	Toast.makeText(bc, msg, Toast.LENGTH_LONG).show();
+		    	Toast.makeText(bc, R.string.case_send_fail_message, Toast.LENGTH_LONG).show();
 			}
 		}
 		
@@ -302,6 +301,18 @@ public class MainActivity extends Activity {
         alertDialog.show();
       }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.menu_info:
+            	Intent intent = new Intent(this, InfoActivity.class);
+            	startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
     
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
