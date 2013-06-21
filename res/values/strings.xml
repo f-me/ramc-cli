@@ -2,7 +2,23 @@
 <resources>
 
     <string name="app_name">RAMC</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="menu_settings">Settings</string>
-
+    <string name="info_activity_name">Информация</string>
+    <string name="menu_info">Информация</string>
+    <string name="logo">Logo</string>
+    <string name="name">ФИО</string>
+    <string name="contact_phone">Телефон для связи</string>
+    <string name="support_phone_label">Телефон:</string>
+    <string name="support_phone">8 800 250 72 62</string>
+    <string name="vin">VIN</string>
+    <string name="license_plate">Госномер</string>
+    <string name="card_number">Номер карты</string>
+    <string name="current_position">Текущие координаты</string>
+    <string name="identify">Определить</string>
+    <string name="required_service">Требуется услуга</string>
+    <string name="info_label">Информация:</string>
+    <string name="info_text">Актуальная информация для клиента</string>
+    <string name="info_button">Информация</string>
+    <string name="case_send_fail_message">Не удалось отправить запрос, попробуйте самостоятельно позвонить в РАМК.</string>
+    <string name="ramc_url">https://gps.ruamc.ru:40444/geo/case/</string>
+    <string name="test_url">https://f-me.dyndns.org:40444/geo/case/</string>
 </resources>
