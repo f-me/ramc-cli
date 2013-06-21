@@ -4,14 +4,25 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.KeyStore;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -151,14 +162,30 @@ public class MainActivity extends Activity {
             }
         }
     }
-	
+    
 	private class SendToRAMC extends AsyncTask<JSONObject, Void, JSONObject> {
 		
 		@Override
 		protected JSONObject doInBackground(JSONObject... datas) {
 			try {
-				DefaultHttpClient httpclient = new DefaultHttpClient();
-				HttpPost httpPostRequest = new HttpPost("http://portal.ruamc.ru:40443/geo/case/");
+				// Create a KeyStore containing our trusted CAs
+				KeyStore keystore = KeyStore.getInstance("PKCS12");
+				keystore.load(getResources().openRawResource(R.raw.keystore), "".toCharArray());
+				
+				SSLSocketFactory sslSocketFactory = new AdditionalKeyStoresSSLSocketFactory(keystore);
+				
+				HttpParams params = new BasicHttpParams();
+		        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+		        HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
+				
+		        final SchemeRegistry registry = new SchemeRegistry();
+		        registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+		        registry.register(new Scheme("https", sslSocketFactory, 40444));
+		        
+				ThreadSafeClientConnManager manager = new ThreadSafeClientConnManager(params, registry);
+				DefaultHttpClient httpclient = new DefaultHttpClient(manager, params);
+				
+				HttpPost httpPostRequest = new HttpPost(getResources().getString(R.string.ramc_url));
 				StringEntity se;
 				se = new StringEntity(datas[0].toString());
 				
