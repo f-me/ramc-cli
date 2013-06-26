@@ -187,7 +187,7 @@ public class MainActivity extends Activity {
 				
 				HttpPost httpPostRequest = new HttpPost(getResources().getString(R.string.ramc_url));
 				StringEntity se;
-				se = new StringEntity(datas[0].toString());
+				se = new StringEntity(datas[0].toString(), HTTP.UTF_8);
 				
 				// Set HTTP parameters
 				httpPostRequest.setEntity(se);
