@@ -173,11 +173,14 @@ public class MainActivity extends Activity {
 				keystore.load(getResources().openRawResource(R.raw.keystore), "".toCharArray());
 				
 				SSLSocketFactory sslSocketFactory = new AdditionalKeyStoresSSLSocketFactory(keystore);
+				// use this for test servers
+				//sslSocketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 				
 				HttpParams params = new BasicHttpParams();
 		        HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
 		        HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
-				
+		        HttpProtocolParams.setUseExpectContinue(params, true);
+		        
 		        final SchemeRegistry registry = new SchemeRegistry();
 		        registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 		        registry.register(new Scheme("https", sslSocketFactory, 40444));
@@ -186,8 +189,7 @@ public class MainActivity extends Activity {
 				DefaultHttpClient httpclient = new DefaultHttpClient(manager, params);
 				
 				HttpPost httpPostRequest = new HttpPost(getResources().getString(R.string.ramc_url));
-				StringEntity se;
-				se = new StringEntity(datas[0].toString(), HTTP.UTF_8);
+				StringEntity se = new StringEntity(datas[0].toString(), HTTP.UTF_8);
 				
 				// Set HTTP parameters
 				httpPostRequest.setEntity(se);
