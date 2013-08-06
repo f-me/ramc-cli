@@ -298,9 +298,7 @@ public class MainActivity extends Activity {
         if (!connected) {
         	AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
             alertDialog.setTitle("Ошибка связи");
-            alertDialog.setMessage(
-    			"Для отправки информации в РАМК необходимо соединение с интернетом."
-        		+ "\nПроверьте соединение и попробуйте ещё раз.");
+            alertDialog.setMessage(R.string.case_send_fail_message);
             alertDialog.setPositiveButton("Хорошо", new DialogInterface.OnClickListener() {
                 @Override
 				public void onClick(DialogInterface dialog,int which) {}
