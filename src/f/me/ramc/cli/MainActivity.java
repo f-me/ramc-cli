@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
 		setupField(R.id.editText3, "f.me.ramc.cli.car_vin",        "");
 		setupField(R.id.editText4, "f.me.ramc.cli.car_plateNum",   "");
 		setupField(R.id.textView3, "f.me.ramc.cli.lastCase",       "Последняя заявка: нет");
-		setupField(R.id.editText5, "f.me.ramc.cli.cardNumber_car", "");
+		setupField(R.id.editText5, "f.me.ramc.cli.cardNumber_cardNumber", "");
 		
 		((Button) findViewById(R.id.button1)).setOnClickListener(new DoSendData());
 
@@ -188,7 +188,7 @@ public class MainActivity extends Activity {
 		        
 				ThreadSafeClientConnManager manager = new ThreadSafeClientConnManager(params, registry);
 				DefaultHttpClient httpclient = new DefaultHttpClient(manager, params);
-				
+
 				HttpPost httpPostRequest = new HttpPost(getResources().getString(R.string.ramc_url));
 				StringEntity se = new StringEntity(datas[0].toString(), HTTP.UTF_8);
 				
@@ -283,7 +283,7 @@ public class MainActivity extends Activity {
 		data.put("contact_phone1", sp.getString("f.me.ramc.cli.contact_phone1", ""));
 		data.put("car_vin",        sp.getString("f.me.ramc.cli.car_vin",        ""));
 		data.put("car_plateNum",   sp.getString("f.me.ramc.cli.car_plateNum",   ""));
-		data.put("cardNumber_car", sp.getString("f.me.ramc.cli.cardNumber_car", ""));
+		data.put("cardNumber_cardNumber", sp.getString("f.me.ramc.cli.cardNumber_cardNumber", ""));
 		return data;
 	}
 	
