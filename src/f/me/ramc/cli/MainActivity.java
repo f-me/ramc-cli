@@ -41,6 +41,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -195,7 +196,13 @@ public class MainActivity extends Activity {
 				// Set HTTP parameters
 				httpPostRequest.setEntity(se);
 				httpPostRequest.setHeader("Accept", "application/json");
-				httpPostRequest.setHeader("Content-type", "application/json");
+				httpPostRequest.setHeader("Content-Type", "application/json");
+
+				PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+				String userAgent = "ramc-cli" + "/" + pInfo.versionName +
+									" (rv:" + String.valueOf(pInfo.versionCode) + "; " + "Android)";
+				httpPostRequest.setHeader("User-Agent", userAgent);
+
 				// only set this parameter if you would like to use gzip compression
 				// httpPostRequest.setHeader("Accept-Encoding", "gzip");
 				
