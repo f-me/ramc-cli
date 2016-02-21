@@ -291,7 +291,7 @@ public class MainActivity extends Activity {
 		data.put("car_vin",        sp.getString("f.me.ramc.cli.car_vin",        ""));
 		data.put("car_plateNum",   sp.getString("f.me.ramc.cli.car_plateNum",   ""));
 		data.put("cardNumber_cardNumber", sp.getString("f.me.ramc.cli.cardNumber_cardNumber", ""));
-		data.put("program", getResources().getString(R.string.program));
+		data.put("program", getResources().getInteger(R.integer.program));
 		return data;
 	}
 	

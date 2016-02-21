@@ -9,7 +9,7 @@
     <string name="contact_phone">Телефон для связи</string>
     <string name="support_phone_label">Телефон:</string>
     <string name="support_phone">8 800 250 72 62</string>
-    <string name="program">ramc2</string>
+    <integer name="program">64</integer>
     <string name="vin">VIN</string>
     <string name="license_plate">Госномер</string>
     <string name="card_number">Номер карты</string>
